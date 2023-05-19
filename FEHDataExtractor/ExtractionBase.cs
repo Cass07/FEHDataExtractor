@@ -1261,6 +1261,7 @@ public class SingleSkill : CommonRelated
     ByteXor pathfinder_range;
     ByteXor arcane_weapon;
     ByteXor unknown_byte_1;
+    ByteXor seers_snare_avail;
     // 3 bytes of padding
     //    StringXor id_tag2;
     //    StringXor next_seal;
@@ -1337,6 +1338,7 @@ public class SingleSkill : CommonRelated
         Pathfinder_range = new ByteXor(0xBE);
         Arcane_weapon = new ByteXor(0xAA);
         Unknown_Byte_1 = new ByteXor(0x01);
+        Seers_snare_avail = new ByteXor(0x3D);
         /*        Ss_coin = new UInt16Xor(0x40, 0xC5);
                 Ss_badge_type = new UInt16Xor(0x0F, 0xD5);
                 Ss_badge = new UInt16Xor(0xEC, 0x8C);
@@ -1452,6 +1454,7 @@ public class SingleSkill : CommonRelated
         Pathfinder_range.XorValue(data[a + 268]);
         Arcane_weapon.XorValue(data[a + 269]);
         Unknown_Byte_1.XorValue(data[a + 270]);
+        Seers_snare_avail.XorValue(data[a + 271]);
         /*        Id_tag2 = new StringXor(ExtractUtils.getLong(a + 256, data) + offset, data, Common);
                 if (!Id_tag2.Value.Equals(""))
                     Archive.Index++;
@@ -1667,8 +1670,9 @@ public class SingleSkill : CommonRelated
         if (Pathfinder_range.Value != 0)
             text += "Pathfinder Range: " + Pathfinder_range.Value + Environment.NewLine;
 
-        text += Arcane_weapon.Value == 0 ? "" : "Arcane Weapon";
+        text += Arcane_weapon.Value == 0 ? "" : "Arcane Weapon" + Environment.NewLine;
         text += Unknown_Byte_1.Value == 0 ? "" : "Unknown Byte Value : " + Unknown_Byte_1.Value + Environment.NewLine;
+        text += Seers_snare_avail.Value == 0 ? "" : "Seers Snare Avail : " + Seers_snare_avail.Value + Environment.NewLine;
         /*        if (!Next_seal.Value.Equals(""))
                     text += getStuff(Next_seal, "Next Seal: ") + "Next Seal ID: " + Next_seal + Environment.NewLine;
                 if (!Prev_seal.Value.Equals(""))
@@ -1829,7 +1833,9 @@ public class SingleSkill : CommonRelated
         text += "\"distant_counter\":" + (Distant_counter.Value == 1 ? "true" : "false") + ","; ;
         text += "\"canto_range\":" + Canto_range + ",";
         text += "\"pathfinder_range\":" + Pathfinder_range + ",";
-        text += "\"arcane_weapon\":" + (Arcane_weapon.Value == 1 ? "true" : "false") + ""; ;
+        text += "\"arcane_weapon\":" + (Arcane_weapon.Value == 1 ? "true" : "false") + ","; ;
+        text += "\"unknown_byte_1\":" + (Unknown_Byte_1.Value == 1 ? "true" : "false") + ",";
+        text += "\"seers_snare_avail\":" + (Seers_snare_avail.Value == 1 ? "true" : "false") + ",";
 
         text += "},";
         return text;
@@ -1915,6 +1921,7 @@ public class SingleSkill : CommonRelated
     public Stats Skill_params2 { get => skill_params2; set => skill_params2 = value; }
     public ByteXor Arcane_weapon { get => arcane_weapon; set => arcane_weapon = value; }
     public ByteXor Unknown_Byte_1 { get => unknown_byte_1; set => unknown_byte_1 = value; }
+    public ByteXor Seers_snare_avail { get => seers_snare_avail; set => seers_snare_avail = value; }
 }
 
 public class SingleSubscription : CommonRelated
