@@ -458,6 +458,7 @@ public class Legendary : CommonRelated
         text += Element.Value != 0 ? "Element: " + LegendaryElement.getString(Element.Value - 1) + Environment.NewLine : "";
         text += Bst.Value != 0 ? "Arena BST: " + Bst.Value + Environment.NewLine : "";
         text += Is_duel.Value != 0 ? "Duel Hero" + Environment.NewLine : "";
+        text += Is_Extraslot.Value != 0 ? "Extra Slot Mythic Hero" + Environment.NewLine : "";
 
         return text;
     }
@@ -492,6 +493,7 @@ public class Legendary : CommonRelated
             Element.XorValue(data[a + 0x19]);
             Bst.XorValue(data[a + 0x1A]);
             Is_duel.XorValue(data[a + 0x1B]);
+            Is_Extraslot.XorValue(data[a + 0x1C]);
         }
     }
 
@@ -1835,7 +1837,7 @@ public class SingleSkill : CommonRelated
         text += "\"pathfinder_range\":" + Pathfinder_range + ",";
         text += "\"arcane_weapon\":" + (Arcane_weapon.Value == 1 ? "true" : "false") + ","; ;
         text += "\"unknown_byte_1\":" + (Unknown_Byte_1.Value == 1 ? "true" : "false") + ",";
-        text += "\"seers_snare_avail\":" + (Seers_snare_avail.Value == 1 ? "true" : "false") + ",";
+        text += "\"seers_snare_avail\":" + (Seers_snare_avail.Value == 1 ? "true" : "false") + "";
 
         text += "},";
         return text;
