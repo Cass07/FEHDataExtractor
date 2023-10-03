@@ -790,9 +790,7 @@ public class Decompress : CharacterRelated
 
 public class SinglePerson : CharacterRelated
 {
-    public static readonly String[] PrintSkills = { "Default Weapon: ", "Default Assist: ", "Default Special: ", "Unknown: ", "Unknown: ", "Unknown: ", "Unlocked Weapon: ", "Unlocked Assist: ", "Unlocked Special: ", "Passive A: ", "Passive B: ", "Passive C: ", "Additional 1: ", "Additional 2: " };
-    public static readonly String[] PrintSkills_kor = { "기본 무기", "기본 보조기", "기본 오의", "Unknown", "Unknown", "Unknown", "무기", "보조기", "오의", "A스킬", "B스킬", "C스킬", "추가스킬 1: ", "추가스킬 2: " };
-
+    public static readonly String[] PrintSkills = { "Default Weapon: ", "Default Assist: ", "Default Special: ", "Unknown: ", "Unknown: ", "Unknown: ", "Unknown: ", "Unlocked Weapon: ", "Unlocked Assist: ", "Unlocked Special: ", "Passive A: ", "Passive B: ", "Passive C: ", "Additional 1: ", "Additional 2: " };
 
     Legendary legendary;
     Dragonflowers dflowers;
