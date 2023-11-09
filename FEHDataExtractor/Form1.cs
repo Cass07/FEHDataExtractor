@@ -10,6 +10,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Data.SqlClient;
+using System.Xml;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace FEHDataExtractor
 {
@@ -134,41 +137,79 @@ namespace FEHDataExtractor
                 for (int i = 0; i < A.Length; i++)
                     if (comboBox1.SelectedItem.ToString().Equals(A[i].Name))
                         tmp = A[i];
-                foreach (String file in Pathes)
+                foreach (String directory in Pathes)
                 {
-                    string ext = System.IO.Path.GetExtension(file).ToLower();
-                    byte[] data = Decompression.Open(file);
-                    String output = "";
-
-
-                    if (data != null && tmp != null && !(tmp.Name.Equals("") || tmp.Name.Equals("Decompress")))
+                    List<String> directoryList = new List<String>();
+                    if (Directory.Exists(directory))
                     {
-                        HSDARC a = new HSDARC(0, data);
-                        while (a.Ptr_list_length - a.NegateIndex > a.Index)
+                        //선택된 file 디렉토리가 폴더임, 1depth만 지원
+                        foreach (string p in (new DirectoryInfo(directory)).GetFiles().Select(f => f.FullName))
                         {
-                            if (!tmp.Name.Equals("Messages"))
+                            //lz 확장자만 선택
+                            string ext = System.IO.Path.GetExtension(p).ToLower();
+                            
+                            if (ext.Equals(".lz"))
                             {
-                                tmp.InsertIn(a, 0, data);
+                                directoryList.Add(p);
                             }
-                            else
-                                tmp.InsertIn(a, offset, data);
-                            output += tmp.ToString_json();
                         }
+                    } else
+                    {
+                        directoryList.Add(directory);
                     }
-                    output = "[" + output.Substring(0, output.Length - 1) + "]";
+                    foreach (String file in directoryList)
+                    {
+                        string ext = System.IO.Path.GetExtension(file).ToLower();
+                        byte[] data = Decompression.Open(file);
+                        String output = "";
 
-                    String PathManip = file.Remove(file.Length - 3, 3);
-                    if (ext.Equals(".lz"))
-                        PathManip = file.Remove(file.Length - 6, 6);
-                    PathManip += tmp.Name.Equals("Decompress") ? "bin" : "json";
-                    if (file.Equals(PathManip))
-                        PathManip += tmp.Name.Equals("Decompress") ? ".bin" : ".json";
-                    if (tmp.Name.Equals("Decompress") && data != null)
-                        File.WriteAllBytes(PathManip, data);
-                    else if (tmp.Name.Equals("Messages") && data != null)
-                        File.WriteAllBytes(PathManip, Encoding.UTF8.GetBytes(output));
-                    else
-                        File.WriteAllText(PathManip, output);
+
+                        if (data != null && tmp != null && !(tmp.Name.Equals("") || tmp.Name.Equals("Decompress")))
+                        {
+                            HSDARC a = new HSDARC(0, data);
+                            while (a.Ptr_list_length - a.NegateIndex > a.Index)
+                            {
+                                if (!tmp.Name.Equals("Messages"))
+                                {
+                                    tmp.InsertIn(a, 0, data);
+                                }
+                                else
+                                {
+                                    tmp.InsertIn(a, offset, data);
+                                }
+                                if (checkBox1.Checked && tmp is Messages)
+                                {
+                                    output = ((Messages)tmp).ToJsonBeautfy();
+                                } else
+                                {
+                                    output += tmp.ToString_json();
+                                }
+                            }
+                        }
+                        if(!(tmp is Messages))
+                        {
+                            output = "[" + output.Substring(0, output.Length - 1) + "]";
+                        }
+
+
+                        if (checkBox1.Checked && !(tmp is Messages))
+                        {
+                            output = JValue.Parse(output).ToString(Newtonsoft.Json.Formatting.Indented);
+                        }
+
+                        String PathManip = file.Remove(file.Length - 3, 3);
+                        if (ext.Equals(".lz"))
+                            PathManip = file.Remove(file.Length - 6, 6);
+                        PathManip += tmp.Name.Equals("Decompress") ? "bin" : "json";
+                        if (file.Equals(PathManip))
+                            PathManip += tmp.Name.Equals("Decompress") ? ".bin" : ".json";
+                        if (tmp.Name.Equals("Decompress") && data != null)
+                            File.WriteAllBytes(PathManip, data);
+                        else if (tmp.Name.Equals("Messages") && data != null)
+                            File.WriteAllBytes(PathManip, Encoding.UTF8.GetBytes(output));
+                        else
+                            File.WriteAllText(PathManip, output);
+                    }
                 }
                 MessageBox.Show(Pathes.Length > 1 ? "JSON Files processed!" : "JSON File processed!", "Success");
             }
@@ -217,5 +258,6 @@ namespace FEHDataExtractor
         {
 
         }
+
     }
 }

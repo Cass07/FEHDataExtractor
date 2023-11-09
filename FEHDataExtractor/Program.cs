@@ -28,7 +28,9 @@ namespace FEHDataExtractor
                 new BaseExtractArchive<SingleArenaPerson>(),
                 new BaseExtractArchive<SingleCaptainSkill>(),
                 new BaseExtractArchive<SingleSkillAccessory>(),
-                new BaseExtractArchive<SingleWeaponRefine>()
+                new BaseExtractArchive<SingleWeaponRefine>(),
+                new BaseExtractArchive<StageEvent>()
+
                 ));
         }
 
