@@ -162,6 +162,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rewards.cs" />
+    <Compile Include="SrpgMap.cs" />
     <Compile Include="TempestTrial.cs" />
     <Compile Include="Weapons.cs" />
     <EmbeddedResource Include="Form1.resx">

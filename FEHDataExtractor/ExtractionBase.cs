@@ -791,7 +791,7 @@ public class Decompress : CharacterRelated
 
 public class SinglePerson : CharacterRelated
 {
-    public static readonly String[] PrintSkills = { "Default Weapon: ", "Default Assist: ", "Default Special: ", "Unknown: ", "Unknown: ", "Unknown: ", "Unknown: ", "Unlocked Weapon: ", "Unlocked Assist: ", "Unlocked Special: ", "Passive A: ", "Passive B: ", "Passive C: ", "Additional 1: ", "Additional 2: " };
+    public static readonly String[] PrintSkills = { "Default Weapon: ", "Default Assist: ", "Default Special: ", "Unknown: ", "Unknown: ", "Unknown: ", "Passive X: ", "Unlocked Weapon: ", "Unlocked Assist: ", "Unlocked Special: ", "Passive A: ", "Passive B: ", "Passive C: ", "Additional 1: ", "Additional 2: " };
 
     Legendary legendary;
     Dragonflowers dflowers;
