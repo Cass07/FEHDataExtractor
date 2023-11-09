@@ -30,7 +30,11 @@ namespace FEHDataExtractor
                 case 0x15:
                 case 0x19:
                 case 0x1A:
-                case 0x27:
+                case 0x22:
+                case 0x25:
+                case 0x2B:
+                case 0x2C:
+                case 0x2D:
                     Thing = new SingleCountDependant();
                     break;
                 case 0x1C:
@@ -38,6 +42,8 @@ namespace FEHDataExtractor
                     break;
                 case 0x1D:
                 case 0x1B:
+                case 0x24:
+                case 0x27:
                     Thing = new CountStr();
                     break;
                 case 1:
@@ -51,6 +57,7 @@ namespace FEHDataExtractor
                     break;
                 case 0xE:
                 case 0x16:
+                case 0x23:
                     Thing = new StringDependant();
                     break;
                 case 0xF:
@@ -83,7 +90,7 @@ namespace FEHDataExtractor
     {
         byte kind;
 
-        public static readonly StringsUpdatable Thing = new StringsUpdatable(new string[]{ "Orb", "Hero", "Hero Feather", "Stamina Potion", "Dueling Crest", "Light's Blessing", "Crystal", "", "", "", "", "", "Badge", "Battle Flag", "Sacred Seal", "Arena Assault Item", "Sacred Coin", "Refining Stone", "Divine Dew", "Arena Medal", "Blessing", "Conquest Lance", "Accessory", "Conversation", "", "Arena Crown", "Heroic Grail", "Aether Stone", "Throne", "Summoning Ticket", "Dragonflower", "Forma Torch", "", "", "", "", "", "", "", "Divine Code"});
+        public static readonly StringsUpdatable Thing = new StringsUpdatable(new string[] { "Orb", "Hero", "Hero Feather", "Stamina Potion", "Dueling Crest", "Light's Blessing", "Crystal", "", "", "", "", "", "Badge", "Battle Flag", "Sacred Seal", "Arena Assault Item", "Sacred Coin", "Refining Stone", "Divine Dew", "Arena Medal", "Blessing", "Conquest Lance", "Accessory", "Conversation", "", "Arena Crown", "Heroic Grail", "Aether Stone", "Throne", "Summoning Ticket", "Dragonflower", "Forma Torch?", "", "", "Havoc Axe", "Backgrownd Music", "Forma Torch", "Midgard Gem", "", "Divine Code", "", "", "", "Forma Soul", "Guardian Shield", "Trait Fruit" });
 
         public override void InsertIn(long a, byte[] data)
         {
@@ -134,7 +141,7 @@ namespace FEHDataExtractor
             String text = "Unknown reward! Kind = 0x" + Kind.ToString("X") + "! Theorical count = " + theoricalCount.ToString();
             return text;
         }
-        
+
     }
 
     public class Hero : StringDependant
@@ -296,7 +303,7 @@ namespace FEHDataExtractor
     public class ArenaAssaultItem : SingleCountDependant
     {
         private byte item;
-        public readonly StringsUpdatable ArenaAssaultItems = new StringsUpdatable(new string[]{ "Elixir", "Fortifying Horn", "Special Blade", "Infantry Boots", "Naga's Tear", "Dancer's Veil", "Lightning Charm", "Panic Charm", "Fear Charm", "Pressure Charm" });
+        public readonly StringsUpdatable ArenaAssaultItems = new StringsUpdatable(new string[] { "Elixir", "Fortifying Horn", "Special Blade", "Infantry Boots", "Naga's Tear", "Dancer's Veil", "Lightning Charm", "Panic Charm", "Fear Charm", "Pressure Charm" });
 
         public byte Item { get => item; set => item = value; }
 
@@ -370,7 +377,7 @@ namespace FEHDataExtractor
         private byte[] iV;
         private Reward_Definition rewards;
         public static readonly byte[] AES128Key = { 0x4b, 0x0d, 0xb4, 0x88, 0x61, 0x7c, 0x60, 0xa1, 0x2b, 0x09, 0x40, 0xe9, 0xed, 0x92, 0xa6, 0x8f };
-        
+
         public byte[] IV { get => iV; set => iV = value; }
         public Reward_Definition Rewards { get => rewards; set => rewards = value; }
 
@@ -404,7 +411,7 @@ namespace FEHDataExtractor
         private SingleReward[] rewards;
         private byte[] checksum; //32 Elements, an int in little endian
         private byte[] _unknown1;
-        public static readonly byte[] ChecksumPrivateKey = {0x4a, 0xb5, 0x6f, 0xfc, 0xfc, 0xad, 0xf8, 0x28, 0x90, 0x92, 0x3c, 0x64, 0x4a, 0x2f, 0xa2, 0x7b, 0x22, 0xdc, 0x04, 0xf7, 0xbf, 0xef, 0xa4, 0xd1, 0xa1, 0x0e, 0xfc, 0xd2, 0x7a, 0xc3, 0x5e, 0x2a, 0xba, 0x87, 0xcd, 0x0f, 0xb8, 0xcc, 0xcb, 0xf6, 0xb8, 0xe1, 0x4f, 0xdb, 0xde, 0xc9, 0xcd, 0xda, 0xb5, 0xf0, 0x81, 0x36, 0x27, 0xbb, 0x23, 0xb3, 0x77, 0x45, 0x71, 0x48, 0x3c, 0x83, 0x6b, 0xe2};
+        public static readonly byte[] ChecksumPrivateKey = { 0x4a, 0xb5, 0x6f, 0xfc, 0xfc, 0xad, 0xf8, 0x28, 0x90, 0x92, 0x3c, 0x64, 0x4a, 0x2f, 0xa2, 0x7b, 0x22, 0xdc, 0x04, 0xf7, 0xbf, 0xef, 0xa4, 0xd1, 0xa1, 0x0e, 0xfc, 0xd2, 0x7a, 0xc3, 0x5e, 0x2a, 0xba, 0x87, 0xcd, 0x0f, 0xb8, 0xcc, 0xcb, 0xf6, 0xb8, 0xe1, 0x4f, 0xdb, 0xde, 0xc9, 0xcd, 0xda, 0xb5, 0xf0, 0x81, 0x36, 0x27, 0xbb, 0x23, 0xb3, 0x77, 0x45, 0x71, 0x48, 0x3c, 0x83, 0x6b, 0xe2 };
 
         public byte Reward_Count { get => reward_Count; set => reward_Count = value; }
         public SingleReward[] Rewards { get => rewards; set => rewards = value; }

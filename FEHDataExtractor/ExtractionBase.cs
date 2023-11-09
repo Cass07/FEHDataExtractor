@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Diagnostics;
 using static System.Net.Mime.MediaTypeNames;
 using System.Xml.Linq;
+using Newtonsoft.Json;
 
 
 //Make the program less crash-happy when things get updated
@@ -2531,11 +2532,32 @@ public class Messages : ExtractionBase
         String text = "";
         for (int i = 0; i < NumElem; i++)
         {
-            text += TranslatedMessages[i, 0] + TranslatedMessages[i, 1];
+            text += "{\"key\":\"" + TranslatedMessages[i, 0] + "\",\"value\":\"" + TranslatedMessages[i, 1] + "\"},";
         }
         return text;
     }
 
+    public string ToJsonBeautfy()
+    {
+        List<MessageObject> messages = new List<MessageObject>();
+        for (int i = 0; i < NumElem; i++)
+        {
+            messages.Add(new MessageObject(TranslatedMessages[i, 0], TranslatedMessages[i, 1]));
+        }
+        return JsonConvert.SerializeObject(messages, Newtonsoft.Json.Formatting.Indented).Replace("\\\\", "\\");
+    }
+
+}
+
+public class MessageObject
+{
+    public String key { get; set; }
+    public String value { get; set; }
+
+    public MessageObject(String key, String value) {
+        this.key = key;
+        this.value = value;
+    }
 }
 
 public class BaseExtractArchive<T> : ExtractionBase where T : ExtractionBase, new()
