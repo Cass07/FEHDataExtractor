@@ -1238,6 +1238,8 @@ public class SingleSkill : CommonRelated
     UInt32Xor mov_got_weakness;
     UInt32Xor wep_adaptive;
     UInt32Xor mov_adaptive;
+    UInt32Xor wep_unknown;
+    UInt32Xor mov_unknown;
     UInt32Xor timing_id;
     UInt32Xor ability_id;
     UInt32Xor limit1_id;
@@ -1276,7 +1278,7 @@ public class SingleSkill : CommonRelated
     {
         Name = "Skills";
         ElemXor = new byte[] { 0xAD, 0xE9, 0xDE, 0x4A, 0x07, 0xC7, 0xEC, 0x7F };
-        Size = 352;
+        Size = 360;
         Prerequisites = new StringXor[2];
         Sprites = new StringXor[4];
         Num_id = new UInt32Xor(0x23, 0x3A, 0xA5, 0xC6);
@@ -1310,6 +1312,8 @@ public class SingleSkill : CommonRelated
         Mov_got_weakness = new UInt32Xor(0x76, 0x41, 0x06, 0xB7);
         Wep_adaptive = new UInt32Xor(0x29, 0x26, 0x4E, 0x49);
         Mov_adaptive = new UInt32Xor(0x2E, 0xEF, 0x6C, 0xEE);
+        Wep_Unknown = new UInt32Xor(0x9C, 0x02, 0xF6, 0x68);
+        Mov_Unknown = new UInt32Xor(0x1E, 0x0D, 0x9E, 0xC4);
         Timing_id = new UInt32Xor(0x48, 0x66, 0x77, 0x9C);
         Ability_id = new UInt32Xor(0x25, 0x73, 0xB0, 0x72);
         Limit1_id = new UInt32Xor(0x32, 0xB8, 0xBD, 0x0E);
@@ -1426,6 +1430,9 @@ public class SingleSkill : CommonRelated
         a += 8;
         Wep_adaptive.XorValue((ExtractUtils.getInt(a + 192, data)));
         Mov_adaptive.XorValue((ExtractUtils.getInt(a + 196, data)));
+        a += 8;
+        Wep_Unknown.XorValue((ExtractUtils.getInt(a + 192, data)));
+        Mov_Unknown.XorValue((ExtractUtils.getInt(a + 196, data)));
         Timing_id.XorValue((ExtractUtils.getInt(a + 200, data)));
         Ability_id.XorValue((ExtractUtils.getInt(a + 204, data)));
         Limit1_id.XorValue((ExtractUtils.getInt(a + 208, data)));
@@ -1638,6 +1645,8 @@ public class SingleSkill : CommonRelated
         text += Mov_got_weakness.Value == 0 ? "" : "New Unknown Value 2:" + Mov_got_weakness + Environment.NewLine;
         text += Wep_adaptive.Value == 0 ? "" : "Weapon adaptive against:" + ExtractUtils.BitmaskConvertToString(Wep_adaptive.Value, WeaponNames) + Environment.NewLine;
         text += Mov_adaptive.Value == 0 ? "" : "Movement adaptive against:" + ExtractUtils.BitmaskConvertToString(Mov_adaptive.Value, Movement) + Environment.NewLine;
+        text += "Weapon unknown: " + Wep_Unknown.Value + Environment.NewLine;
+        text += "Movement unknown: " + Mov_Unknown.Value + Environment.NewLine;
         text += "Timing ID: " + Timing_id + Environment.NewLine;
         text += "Ability ID: " + Ability_id + Environment.NewLine;
         text += "Limit 1 ID: " + Limit1_id + Environment.NewLine;
@@ -1787,6 +1796,8 @@ public class SingleSkill : CommonRelated
         text += "\"mov_weakness\":" + Mov_weakness + ",";
         text += "\"wep_adaptive\":" + Wep_adaptive + ",";
         text += "\"mov_adaptive\":" + Mov_adaptive + ",";
+        text += "\"wep_unknown\":" + Wep_Unknown + ",";
+        text += "\"mov_unknown\":" + Mov_Unknown + ",";
         text += "\"timing_id\":" + Timing_id + ",";
         text += "\"ability_id\":" + Ability_id + ",";
 
@@ -1889,6 +1900,8 @@ public class SingleSkill : CommonRelated
     public UInt32Xor Mov_got_weakness { get => mov_got_weakness; set => mov_got_weakness = value; }
     public UInt32Xor Wep_adaptive { get => wep_adaptive; set => wep_adaptive = value; }
     public UInt32Xor Mov_adaptive { get => mov_adaptive; set => mov_adaptive = value; }
+    public UInt32Xor Wep_Unknown { get => wep_unknown; set => wep_unknown = value; }
+    public UInt32Xor Mov_Unknown { get => mov_unknown; set => mov_unknown = value; }
     public UInt32Xor Timing_id { get => timing_id; set => timing_id = value; }
     public UInt32Xor Ability_id { get => ability_id; set => ability_id = value; }
     public UInt32Xor Limit1_id { get => limit1_id; set => limit1_id = value; }
