@@ -1204,8 +1204,10 @@ public class SingleSkill : CommonRelated
     Stats class_params;
     Stats skill_params;
     Stats skill_params2;
+    Stats new_stat_2;
     Stats new_stat_1;
     Stats refine_stats;
+
 
     UInt32Xor num_id;
     UInt32Xor sort_id;
@@ -1278,7 +1280,7 @@ public class SingleSkill : CommonRelated
     {
         Name = "Skills";
         ElemXor = new byte[] { 0xAD, 0xE9, 0xDE, 0x4A, 0x07, 0xC7, 0xEC, 0x7F };
-        Size = 360;
+        Size = 384;
         Prerequisites = new StringXor[2];
         Sprites = new StringXor[4];
         Num_id = new UInt32Xor(0x23, 0x3A, 0xA5, 0xC6);
@@ -1396,7 +1398,9 @@ public class SingleSkill : CommonRelated
         Class_params = new Stats(a + 80, data);
         Skill_params = new Stats(a + 96, data);
         Skill_params2 = new Stats(a + 112, data);
-        New_stat_1 = new Stats(a + 128, data);
+        new_stat_2 = new Stats(a + 128, data);
+        a += 0x10;
+        new_stat_1 = new Stats(a + 128, data);
         Refine_stats = new Stats(a + 144, data);
         a += 0x20;
         Num_id.XorValue((ExtractUtils.getInt(a + 128, data)));
@@ -1433,6 +1437,7 @@ public class SingleSkill : CommonRelated
         a += 8;
         Wep_Unknown.XorValue((ExtractUtils.getInt(a + 192, data)));
         Mov_Unknown.XorValue((ExtractUtils.getInt(a + 196, data)));
+        a += 8;
         Timing_id.XorValue((ExtractUtils.getInt(a + 200, data)));
         Ability_id.XorValue((ExtractUtils.getInt(a + 204, data)));
         Limit1_id.XorValue((ExtractUtils.getInt(a + 208, data)));
@@ -1613,7 +1618,8 @@ public class SingleSkill : CommonRelated
         text += "Skill Parameters: " + Skill_params;
         text += "Skill Parameters 2: " + Skill_params2;
         text += "Refine Stats: " + Refine_stats;
-        text += "Something new Stats?: " + New_stat_1;
+        text += "Something new Stats?: " + New_Stat_1;
+        text += "Something new Stats? 2: " + New_Stat_2;
         text += "ID: " + Num_id + Environment.NewLine;
         text += "Sort: " + Sort_id + Environment.NewLine;
         text += "Icon ID: " + Icon_id + Environment.NewLine;
@@ -1936,6 +1942,8 @@ public class SingleSkill : CommonRelated
     public ByteXor Arcane_weapon { get => arcane_weapon; set => arcane_weapon = value; }
     public ByteXor Unknown_Byte_1 { get => unknown_byte_1; set => unknown_byte_1 = value; }
     public ByteXor Seers_snare_avail { get => seers_snare_avail; set => seers_snare_avail = value; }
+    public Stats New_Stat_1 { get => new_stat_1; set => new_stat_1 = value; }
+    public Stats New_Stat_2 { get => new_stat_2; set => new_stat_2 = value; }
 }
 
 public class SingleSubscription : CommonRelated
