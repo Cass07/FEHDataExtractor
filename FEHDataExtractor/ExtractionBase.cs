@@ -1280,7 +1280,7 @@ public class SingleSkill : CommonRelated
     {
         Name = "Skills";
         ElemXor = new byte[] { 0xAD, 0xE9, 0xDE, 0x4A, 0x07, 0xC7, 0xEC, 0x7F };
-        Size = 384;
+        Size = 392;
         Prerequisites = new StringXor[2];
         Sprites = new StringXor[4];
         Num_id = new UInt32Xor(0x23, 0x3A, 0xA5, 0xC6);
@@ -1462,12 +1462,12 @@ public class SingleSkill : CommonRelated
         Limit3_params[1].XorValue((ExtractUtils.getShort(a + 262, data)));
         Range_shape.XorValue(data[a + 264]);
         Target_either.XorValue(data[a + 265]);
-        Distant_counter.XorValue(data[a + 266]);
-        Canto_range.XorValue(data[a + 267]);
-        Pathfinder_range.XorValue(data[a + 268]);
-        Arcane_weapon.XorValue(data[a + 269]);
-        Unknown_Byte_1.XorValue(data[a + 270]);
-        Seers_snare_avail.XorValue(data[a + 271]);
+        //Distant_counter.XorValue(data[a + 266]);
+        Canto_range.XorValue(data[a + 266]);
+        Pathfinder_range.XorValue(data[a + 267]);
+        Arcane_weapon.XorValue(data[a + 268]);
+        Unknown_Byte_1.XorValue(data[a + 269]);
+        Seers_snare_avail.XorValue(data[a + 270]);
         /*        Id_tag2 = new StringXor(ExtractUtils.getLong(a + 256, data) + offset, data, Common);
                 if (!Id_tag2.Value.Equals(""))
                     Archive.Index++;
@@ -1680,7 +1680,7 @@ public class SingleSkill : CommonRelated
         text += (Random_allowed.Value == 0 && Random_mode.Value == 0) ? "" : ((Random_mode.Value == 0 ? "The skill cannot be used by random units" : Random_mode.Value == 1 ? "The skill may be equipped by any random unit" : "The skill may be equipped by random units who normally own it") + Environment.NewLine);
         text += "Range shape: " + Range_shape.Value + Environment.NewLine;
         text += (Target_either.Value == 1) ? ("Targets both enemies and allies" + Environment.NewLine) : "";
-        text += "Distant counter: " + Distant_counter.Value + Environment.NewLine;
+        //text += "Distant counter: " + Distant_counter.Value + Environment.NewLine;
         text += "Canto Range: " + Canto_range.Value + Environment.NewLine;
         text += "Canto turn: " + Limit3_params[0] + "~" + Limit3_params[1] + Environment.NewLine;
         if (Pathfinder_range.Value != 0)
@@ -1848,7 +1848,7 @@ public class SingleSkill : CommonRelated
 
         text += "\"range_shape\":" + Range_shape + ",";
         text += "\"target_either\":" + (Target_either.Value == 1 ? "true" : "false") + ","; ;
-        text += "\"distant_counter\":" + (Distant_counter.Value == 1 ? "true" : "false") + ","; ;
+        //text += "\"distant_counter\":" + (Distant_counter.Value == 1 ? "true" : "false") + ","; ;
         text += "\"canto_range\":" + Canto_range + ",";
         text += "\"pathfinder_range\":" + Pathfinder_range + ",";
         text += "\"arcane_weapon\":" + (Arcane_weapon.Value == 1 ? "true" : "false") + ","; ;
