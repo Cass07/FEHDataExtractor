@@ -426,13 +426,14 @@ public class Legendary : CommonRelated
 {
     public static readonly StringsUpdatable LegKind = new StringsUpdatable(new string[] { "Legendary/Mythic", "Duo", "Harmonized Duo", "Ascendant", "Rearmed" });
     public static readonly StringsUpdatable LegKind_kor = new StringsUpdatable(new string[] { "전승/신계", "비익", "쌍계", "개화", "마기" });
+    public static readonly StringsUpdatable LegEff = new StringsUpdatable(new string[] { "Extra Slot", "Calling" });
     private StringXor duo_skill_id;
     private Stats bonuses;
     private ByteXor kind;
     private ByteXor element;
     private ByteXor bst;
     private ByteXor is_duel;
-    private ByteXor is_extraslot;
+    private ByteXor is_extraeff;
 
     public Legendary()
     {
@@ -442,7 +443,7 @@ public class Legendary : CommonRelated
         Element = new ByteXor(5);
         Bst = new ByteXor(0x0F);
         Is_duel = new ByteXor(0x80);
-        Is_Extraslot = new ByteXor(0x24);
+        Is_ExtraEff = new ByteXor(0x24);
     }
 
     public Legendary(long a, byte[] data) : this()
@@ -459,7 +460,7 @@ public class Legendary : CommonRelated
         text += Element.Value != 0 ? "Element: " + LegendaryElement.getString(Element.Value - 1) + Environment.NewLine : "";
         text += Bst.Value != 0 ? "Arena BST: " + Bst.Value + Environment.NewLine : "";
         text += Is_duel.Value != 0 ? "Duel Hero" + Environment.NewLine : "";
-        text += Is_Extraslot.Value != 0 ? "Extra Slot Mythic Hero" + Environment.NewLine : "";
+        text += Is_ExtraEff.Value != 0 ? "Extra Effect : " + ExtractUtils.BitmaskConvertToString(Is_ExtraEff.Value, LegEff) + Environment.NewLine : "";
 
         return text;
     }
@@ -477,7 +478,7 @@ public class Legendary : CommonRelated
         text += "\"element\":" + Element + ",";
         text += "\"bst\":" + Bst + ",";
         text += "\"pair_up\":" + (Is_duel.Value != 0 ? "true" : "false") + ",";
-        text += "\"ae_extra\":" + (Is_Extraslot.Value != 0 ? "true" : "false");
+        text += "\"ae_extra\":" + Is_ExtraEff.Value;
 
         text += "}";
 
@@ -494,7 +495,7 @@ public class Legendary : CommonRelated
             Element.XorValue(data[a + 0x19]);
             Bst.XorValue(data[a + 0x1A]);
             Is_duel.XorValue(data[a + 0x1B]);
-            Is_Extraslot.XorValue(data[a + 0x1C]);
+            Is_ExtraEff.XorValue(data[a + 0x1C]);
         }
     }
 
@@ -504,7 +505,7 @@ public class Legendary : CommonRelated
     public ByteXor Bst { get => bst; set => bst = value; }
     public ByteXor Is_duel { get => is_duel; set => is_duel = value; }
     public ByteXor Kind { get => kind; set => kind = value; }
-    public ByteXor Is_Extraslot { get => is_extraslot; set => is_extraslot = value; }
+    public ByteXor Is_ExtraEff { get => is_extraeff; set => is_extraeff = value; }
 }
 
 public class Dragonflowers : CommonRelated
