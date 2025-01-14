@@ -31,7 +31,6 @@ public class StringsUpdatable
 }
 public class TAG
 {
-    public static int offset = 0x20;
     private String name;
     private Int32 tag_ptr;
 
@@ -76,15 +75,15 @@ public class HSDARC
         {
             Ptr_list[i] = ExtractUtils.getLong(Ptr_list_offset + (i * 8), data) + offset;
         }
-        
+
         int tag_list_offset = Ptr_list_offset + (Ptr_list_length * 8);
-        int tag_string_offset = tag_list_offset + (Tag_list_length * 8);
-        for(int i = 0; i < Tag_list_length; i++)
+        int tag_name_list_offset = tag_list_offset + (Tag_list_length * 8);
+        for (int i = 0; i < Tag_list_length; i++)
         {
             Int32 tag_offset = ExtractUtils.getInt(tag_list_offset + (i * 8), data) + offset;
-            Int32 tag_name_offset = ExtractUtils.getInt(tag_list_offset + (i * 8) + 4, data) + offset;
-            String tag_name = new StringXor(tag_name_offset, data, 0).ToString();
-            Tags[i] = new TAG(tag_name, tag_offset);
+            Int32 tag_name_offset = ExtractUtils.getInt(tag_list_offset + (i * 8) + 4, data);
+            StringXor tag_name = new StringXor(tag_name_list_offset + tag_name_offset, data, 0);
+            Tags[i] = new TAG(tag_name.ToString(), tag_offset);
         }
     }
 
