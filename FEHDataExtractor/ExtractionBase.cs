@@ -29,6 +29,21 @@ public class StringsUpdatable
             return "??? UNKNOWN VALUE, MUST BE UPDATED, VALUE = " + index;
     }
 }
+public class TAG
+{
+    public static int offset = 0x20;
+    private String name;
+    private Int32 tag_ptr;
+
+    public TAG(String name, Int32 offset)
+    {
+        this.name = name;
+        this.tag_ptr = offset;
+    }
+
+    public String Name { get => name; set => name = value; }
+    public Int32 Tag_ptr { get => tag_ptr; set => tag_ptr = value; }
+}
 
 public class HSDARC
 {
@@ -36,13 +51,14 @@ public class HSDARC
     private int archive_size;
     private int ptr_list_offset;
     private int ptr_list_length;
+    private int tag_list_length;
     private int _offset1;
     private int _offset2;
     private int _unknown1;
     private byte[] data;
     private int negateIndex;
     private int index;
-    private Int64 tag;
+    private TAG[] tags;
     private Int64[] ptr_list;
 
     public HSDARC(long a, byte[] data)
@@ -50,7 +66,9 @@ public class HSDARC
         Archive_size = ExtractUtils.getInt(0, data);
         Ptr_list_offset = ExtractUtils.getInt(4, data) + offset;
         Ptr_list_length = ExtractUtils.getInt(8, data);
+        Tag_list_length = ExtractUtils.getInt(12, data);
         Ptr_list = new long[Ptr_list_length];
+        Tags = new TAG[Tag_list_length];
         Index = 0;
         NegateIndex = 0;
         this.Data = data;
@@ -58,15 +76,26 @@ public class HSDARC
         {
             Ptr_list[i] = ExtractUtils.getLong(Ptr_list_offset + (i * 8), data) + offset;
         }
+        
+        int tag_list_offset = Ptr_list_offset + (Ptr_list_length * 8);
+        int tag_string_offset = tag_list_offset + (Tag_list_length * 8);
+        for(int i = 0; i < Tag_list_length; i++)
+        {
+            Int32 tag_offset = ExtractUtils.getInt(tag_list_offset + (i * 8), data) + offset;
+            Int32 tag_name_offset = ExtractUtils.getInt(tag_list_offset + (i * 8) + 4, data) + offset;
+            String tag_name = new StringXor(tag_name_offset, data, 0).ToString();
+            Tags[i] = new TAG(tag_name, tag_offset);
+        }
     }
 
     public int Archive_size { get => archive_size; set => archive_size = value; }
     public int Ptr_list_offset { get => ptr_list_offset; set => ptr_list_offset = value; }
     public int Ptr_list_length { get => ptr_list_length; set => ptr_list_length = value; }
+    public int Tag_list_length { get => tag_list_length; set => tag_list_length = value; }
     public int Offset1 { get => _offset1; set => _offset1 = value; }
     public int Offset2 { get => _offset2; set => _offset2 = value; }
     public int Unknown1 { get => _unknown1; set => _unknown1 = value; }
-    public long Tag { get => tag; set => tag = value; }
+    public TAG[] Tags { get => tags; set => tags = value; }
     public long[] Ptr_list { get => ptr_list; set => ptr_list = value; }
     public byte[] Data { get => data; set => data = value; }
     public int Index { get => index; set => index = value; }
@@ -2620,6 +2649,60 @@ public class BaseExtractArchive<T> : ExtractionBase where T : ExtractionBase, ne
         String text = "";
         for (int i = 0; i < NumElem.Value; i++)
             text += Things[i];
+        return text;
+    }
+
+    public override string ToString_json()
+    {
+        String text = "";
+        for (int i = 0; i < NumElem.Value; i++)
+            text += Things[i].ToString_json();
+        return text;
+    }
+
+}
+
+public class BaseExtractArchiveTag<T> : ExtractionBase where T : ExtractionBase, new()
+{
+    private Int64Xor numElem;
+    private T[] things;
+
+    public Int64Xor NumElem { get => numElem; set => numElem = value; }
+    internal T[] Things { get => things; set => things = value; }
+
+    public BaseExtractArchiveTag()
+    {
+        T tmp = new T();
+        Name = tmp.Name;
+        NumElem = new Int64Xor(tmp.ElemXor);
+    }
+    public BaseExtractArchiveTag(long a, byte[] data) : this()
+    {
+        InsertIn(a, data);
+    }
+    public override void InsertIn(long a, byte[] data)
+    {
+        a = Archive.Ptr_list[Archive.Index];
+        NumElem.XorValue(ExtractUtils.getLong(a + 8, data));
+        Archive.Index++;
+        Things = new T[NumElem.Value];
+        a = ExtractUtils.getLong(a, data) + offset;
+        for (int i = 0; i < NumElem.Value; i++)
+        {
+            Things[i] = new T();
+            Things[i].InsertIn(Archive, Archive.Tags[i].Tag_ptr, data);
+        }
+        Archive.Index = Archive.Ptr_list_length;
+    }
+
+    public override string ToString()
+    {
+        String text = "";
+        for (int i = 0; i < NumElem.Value; i++)
+        {
+            text += "TAG : " + Archive.Tags[i].Name + Environment.NewLine;
+            text += Things[i];
+        }
         return text;
     }
 
