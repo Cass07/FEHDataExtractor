@@ -704,7 +704,7 @@ public class SingleEnemy : CharacterRelated
         Refresher.XorValue(data[a + 0x55]);
         Is_enemy.XorValue(data[a + 0x56]);
         Base_stats = new Stats(a + 0x58, data);
-        Growth_rates = new Stats(a + 0x60, data);
+        Growth_rates = new Stats(a + 0x68, data);
     }
 
 
