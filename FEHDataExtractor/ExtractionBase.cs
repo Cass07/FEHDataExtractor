@@ -29,6 +29,20 @@ public class StringsUpdatable
             return "??? UNKNOWN VALUE, MUST BE UPDATED, VALUE = " + index;
     }
 }
+public class TAG
+{
+    private String name;
+    private Int32 tag_ptr;
+
+    public TAG(String name, Int32 offset)
+    {
+        this.name = name;
+        this.tag_ptr = offset;
+    }
+
+    public String Name { get => name; set => name = value; }
+    public Int32 Tag_ptr { get => tag_ptr; set => tag_ptr = value; }
+}
 
 public class HSDARC
 {
@@ -36,13 +50,14 @@ public class HSDARC
     private int archive_size;
     private int ptr_list_offset;
     private int ptr_list_length;
+    private int tag_list_length;
     private int _offset1;
     private int _offset2;
     private int _unknown1;
     private byte[] data;
     private int negateIndex;
     private int index;
-    private Int64 tag;
+    private TAG[] tags;
     private Int64[] ptr_list;
 
     public HSDARC(long a, byte[] data)
@@ -50,7 +65,9 @@ public class HSDARC
         Archive_size = ExtractUtils.getInt(0, data);
         Ptr_list_offset = ExtractUtils.getInt(4, data) + offset;
         Ptr_list_length = ExtractUtils.getInt(8, data);
+        Tag_list_length = ExtractUtils.getInt(12, data);
         Ptr_list = new long[Ptr_list_length];
+        Tags = new TAG[Tag_list_length];
         Index = 0;
         NegateIndex = 0;
         this.Data = data;
@@ -58,15 +75,26 @@ public class HSDARC
         {
             Ptr_list[i] = ExtractUtils.getLong(Ptr_list_offset + (i * 8), data) + offset;
         }
+
+        int tag_list_offset = Ptr_list_offset + (Ptr_list_length * 8);
+        int tag_name_list_offset = tag_list_offset + (Tag_list_length * 8);
+        for (int i = 0; i < Tag_list_length; i++)
+        {
+            Int32 tag_offset = ExtractUtils.getInt(tag_list_offset + (i * 8), data) + offset;
+            Int32 tag_name_offset = ExtractUtils.getInt(tag_list_offset + (i * 8) + 4, data);
+            StringXor tag_name = new StringXor(tag_name_list_offset + tag_name_offset, data, 0);
+            Tags[i] = new TAG(tag_name.ToString(), tag_offset);
+        }
     }
 
     public int Archive_size { get => archive_size; set => archive_size = value; }
     public int Ptr_list_offset { get => ptr_list_offset; set => ptr_list_offset = value; }
     public int Ptr_list_length { get => ptr_list_length; set => ptr_list_length = value; }
+    public int Tag_list_length { get => tag_list_length; set => tag_list_length = value; }
     public int Offset1 { get => _offset1; set => _offset1 = value; }
     public int Offset2 { get => _offset2; set => _offset2 = value; }
     public int Unknown1 { get => _unknown1; set => _unknown1 = value; }
-    public long Tag { get => tag; set => tag = value; }
+    public TAG[] Tags { get => tags; set => tags = value; }
     public long[] Ptr_list { get => ptr_list; set => ptr_list = value; }
     public byte[] Data { get => data; set => data = value; }
     public int Index { get => index; set => index = value; }
@@ -563,7 +591,7 @@ public class Dragonflowers : CommonRelated
         if (a != offset)
         {
             Dflowers.XorValue((ExtractUtils.getInt(a, data)));
-            a += 16;
+            a += 0x10;
             DFlowerCostList = new Int32Xor[Dflowers.Value];
             for (int i = 0; i < Dflowers.Value; i++)
             {
@@ -631,53 +659,52 @@ public class SingleEnemy : CharacterRelated
     {
         Id_tag = new StringXor(ExtractUtils.getLong(a, data) + offset, data, Common);
         Archive.Index++;
-        Roman = new StringXor(ExtractUtils.getLong(a + 8, data) + offset, data, Common);
+        Roman = new StringXor(ExtractUtils.getLong(a + 0x08, data) + offset, data, Common);
         Archive.Index++;
         /*
         if (Roman.Value.Equals("NONE"))
         {
             return;
         }*/
-        Face_name = new StringXor(ExtractUtils.getLong(a + 16, data) + offset, data, Common);
+        Face_name = new StringXor(ExtractUtils.getLong(a + 0x10, data) + offset, data, Common);
         Archive.Index++;
-        a += 24;
-        Face_name2 = new StringXor(ExtractUtils.getLong(a, data) + offset, data, Common);
+ 
+        Face_name2 = new StringXor(ExtractUtils.getLong(a + 0x18, data) + offset, data, Common);
         Archive.Index++;
-        TopWeapon = new StringXor(ExtractUtils.getLong(a + 8, data) + offset, data, Common);
+        TopWeapon = new StringXor(ExtractUtils.getLong(a + 0x20, data) + offset, data, Common);
         if (!TopWeapon.Value.Equals(""))
             Archive.Index++;
 
-        UniqueAssist = new StringXor(ExtractUtils.getLong(a + 16, data) + offset, data, Common);
+        UniqueAssist = new StringXor(ExtractUtils.getLong(a + 0x28, data) + offset, data, Common);
         if (!UniqueAssist.Value.Equals(""))
             Archive.Index++;
 
-        UniqueAssist2 = new StringXor(ExtractUtils.getLong(a + 24, data) + offset, data, Common);
+        UniqueAssist2 = new StringXor(ExtractUtils.getLong(a + 0x30, data) + offset, data, Common);
         if (!UniqueAssist2.Value.Equals(""))
             Archive.Index++;
 
-        UniqueSpecial = new StringXor(ExtractUtils.getLong(a + 32, data) + offset, data, Common);
+        UniqueSpecial = new StringXor(ExtractUtils.getLong(a + 0x38, data) + offset, data, Common);
         if (!UniqueSpecial.Value.Equals(""))
             Archive.Index++;
 
-        a += 24;
-        Timestamp.XorValue((ExtractUtils.getLong(a + 16, data)));
-        Id_num.XorValue((ExtractUtils.getInt(a + 24, data)));
+        Timestamp.XorValue((ExtractUtils.getLong(a + 0x40, data)));
+        Id_num.XorValue((ExtractUtils.getInt(a + 0x48, data)));
         //28~31 새로운거 생김
 
-        Is_npc.XorValue(data[a + 28]);
-        Byte_29.XorValue(data[a + 29]);
-        Byte_30.XorValue(data[a + 30]);
-        Byte_31.XorValue(data[a + 31]);
+        Is_npc.XorValue(data[a + 0x4C]);
+        Byte_29.XorValue(data[a + 0x4D]);
+        Byte_30.XorValue(data[a + 0x4E]);
+        Byte_31.XorValue(data[a + 0x4F]);
 
-        Weapon_type.XorValue(data[a + 32]);
-        Tome_class.XorValue(data[a + 33]);
-        Move_type.XorValue(data[a + 34]);
-        Spawnable_Enemy.XorValue(data[a + 35]);
-        Is_boss.XorValue(data[a + 36]);
-        Refresher.XorValue(data[a + 37]);
-        Is_enemy.XorValue(data[a + 38]);
-        Base_stats = new Stats(a + 40, data);
-        Growth_rates = new Stats(a + 56, data);
+        Weapon_type.XorValue(data[a + 0x50]);
+        Tome_class.XorValue(data[a + 0x51]);
+        Move_type.XorValue(data[a + 0x52]);
+        Spawnable_Enemy.XorValue(data[a + 0x53]);
+        Is_boss.XorValue(data[a + 0x54]);
+        Refresher.XorValue(data[a + 0x55]);
+        Is_enemy.XorValue(data[a + 0x56]);
+        Base_stats = new Stats(a + 0x58, data);
+        Growth_rates = new Stats(a + 0x68, data);
     }
 
 
@@ -839,46 +866,44 @@ public class SinglePerson : CharacterRelated
     {
         Id_tag = new StringXor(ExtractUtils.getLong(a, data) + offset, data, Common);
         Archive.Index++;
-        Roman = new StringXor(ExtractUtils.getLong(a + 8, data) + offset, data, Common);
+        Roman = new StringXor(ExtractUtils.getLong(a + 0x08, data) + offset, data, Common);
         Archive.Index++;
         if (Roman.Value.Equals("NONE"))
         {
             return;
         }
-        Face_name = new StringXor(ExtractUtils.getLong(a + 16, data) + offset, data, Common);
+        Face_name = new StringXor(ExtractUtils.getLong(a + 0x10, data) + offset, data, Common);
         Archive.Index++;
-        a += 24;
-        Face_name2 = new StringXor(ExtractUtils.getLong(a, data) + offset, data, Common);
+        Face_name2 = new StringXor(ExtractUtils.getLong(a + 0x18, data) + offset, data, Common);
         Archive.Index++;
-        Legendary = new Legendary(ExtractUtils.getLong(a + 8, data) + offset, data);
+        Legendary = new Legendary(ExtractUtils.getLong(a + 0x20, data) + offset, data);
         if (Legendary.Bonuses != null)
             Archive.Index++;
-        Dflowers = new Dragonflowers(ExtractUtils.getLong(a + 16, data) + offset, data);
+        Dflowers = new Dragonflowers(ExtractUtils.getLong(a + 0x28, data) + offset, data);
         Archive.Index++;
-        Timestamp.XorValue((ExtractUtils.getLong(a + 24, data)));
-        Id_num.XorValue((ExtractUtils.getInt(a + 32, data)));
-        Version_Chapter_num.XorValue(data[a + 36]);
-        Version_Book_num.XorValue((ExtractUtils.getInt(a + 36, data)));//38 39 -> 19 2E 잇는데 의미 아직모름
-        a += 16;
-        Sort_value.XorValue((ExtractUtils.getInt(a + 24, data)));
-        Origin.XorValue((ExtractUtils.getInt(a + 28, data)));
-        Weapon_type.XorValue(data[a + 32]);
-        Tome_class.XorValue(data[a + 33]);
-        Move_type.XorValue(data[a + 34]);
-        Series1.XorValue(data[a + 35]);
-        Regular_hero.XorValue(data[a + 36]);
-        Permanent_hero.XorValue(data[a + 37]);
-        Base_vector_id.XorValue(data[a + 38]);
-        Refresher.XorValue(data[a + 39]);
-        Unknown2.XorValue(data[a + 40]);
-        Base_stats = new Stats(a + 48, data);
+        Timestamp.XorValue((ExtractUtils.getLong(a + 0x30, data)));
+        Id_num.XorValue((ExtractUtils.getInt(a + 0x38, data)));
+        Version_Chapter_num.XorValue(data[a + 0x3C]);
+        Version_Book_num.XorValue((ExtractUtils.getInt(a + 0x3C, data)));//38 39 -> 19 2E 잇는데 의미 아직모름
+        Sort_value.XorValue((ExtractUtils.getInt(a + 0x40, data)));
+        Origin.XorValue((ExtractUtils.getInt(a + 0x44, data)));
+        Weapon_type.XorValue(data[a + 0x48]);
+        Tome_class.XorValue(data[a + 0x49]);
+        Move_type.XorValue(data[a + 0x4A]);
+        Series1.XorValue(data[a + 0x4B]);
+        Regular_hero.XorValue(data[a + 0x4C]);
+        Permanent_hero.XorValue(data[a + 0x4D]);
+        Base_vector_id.XorValue(data[a + 0x4E]);
+        Refresher.XorValue(data[a + 0x4F]);
+        Unknown2.XorValue(data[a + 0x50]);
+        Base_stats = new Stats(a + 0x58, data);
         Base_stats.IncrementAll();
-        Growth_rates = new Stats(a + 64, data);
+        Growth_rates = new Stats(a + 0x68, data);
 
         for (int i = 0; i < Skills.Length / PrintSkills.Length; i++)
             for (int j = 0; j < PrintSkills.Length; j++)
             {
-                Skills[i, j] = new StringXor(ExtractUtils.getLong((j * 8) + (i * PrintSkills.Length * 8) + a + 80, data) + offset, data, Common);
+                Skills[i, j] = new StringXor(ExtractUtils.getLong((j * 0x08) + (i * PrintSkills.Length * 0x08) + a + 0x78, data) + offset, data, Common);
                 if (!Skills[i, j].ToString().Equals(""))
                 {
                     Archive.Index++;
@@ -1364,125 +1389,128 @@ public class SingleSkill : CommonRelated
     {
         Id_tag = new StringXor(ExtractUtils.getLong(a, data) + offset, data, Common);
         Archive.Index++;
-        Refine_base = new StringXor(ExtractUtils.getLong(a + 8, data) + offset, data, Common);
+
+        Refine_base = new StringXor(ExtractUtils.getLong(a + 0x08, data) + offset, data, Common);
         if (!Refine_base.Value.Equals(""))
         {
             Archive.Index++;
         }
-        Name_id = new StringXor(ExtractUtils.getLong(a + 16, data) + offset, data, Common);
+
+        Name_id = new StringXor(ExtractUtils.getLong(a + 0x10, data) + offset, data, Common);
         Archive.Index++;
-        a += 24;
-        Desc_id = new StringXor(ExtractUtils.getLong(a, data) + offset, data, Common);
+
+        Desc_id = new StringXor(ExtractUtils.getLong(a + 0x18, data) + offset, data, Common);
         Archive.Index++;
-        Refine_id = new StringXor(ExtractUtils.getLong(a + 8, data) + offset, data, Common);
+
+        Refine_id = new StringXor(ExtractUtils.getLong(a + 0x20, data) + offset, data, Common);
         if (!Refine_id.Value.Equals(""))
+        {
             Archive.Index++;
-        a += 8;
-        Beast_effect_id = new StringXor(ExtractUtils.getLong(a + 8, data) + offset, data, Common);
+        }
+
+        Beast_effect_id = new StringXor(ExtractUtils.getLong(a + 0x28, data) + offset, data, Common);
+
         for (int i = 0; i < Prerequisites.Length; i++)
         {
-            Prerequisites[i] = new StringXor(ExtractUtils.getLong(a + 16 + (8 * i), data) + offset, data, Common);
+            Prerequisites[i] = new StringXor(ExtractUtils.getLong(a + 0x30 + (0x08 * i), data) + offset, data, Common);
             if (!Prerequisites[i].Value.Equals(""))
+            {
                 Archive.Index++;
+            }
         }
-        Next_skill = new StringXor(ExtractUtils.getLong(a + 32, data) + offset, data, Common);
+
+        Next_skill = new StringXor(ExtractUtils.getLong(a + 0x40, data) + offset, data, Common);
         if (!Next_skill.Value.Equals(""))
+        {
             Archive.Index++;
-        a += 8;
+        }
+
         for (int i = 0; i < Sprites.Length; i++)
         {
-            Sprites[i] = new StringXor(ExtractUtils.getLong(a + 32 + (8 * i), data) + offset, data, 0);
+            Sprites[i] = new StringXor(ExtractUtils.getLong(a + 0x48 + (0x08 * i), data) + offset, data, 0);
             if (!Sprites[i].Value.Equals(""))
+            {
                 Archive.NegateIndex++;
+            }
         }
-        Statistics = new Stats(a + 64, data);
-        Class_params = new Stats(a + 80, data);
-        Skill_params = new Stats(a + 96, data);
-        Skill_params2 = new Stats(a + 112, data);
-        new_stat_2 = new Stats(a + 128, data);
-        a += 0x10;
-        new_stat_1 = new Stats(a + 128, data);
-        Refine_stats = new Stats(a + 144, data);
-        a += 0x20;
-        Num_id.XorValue((ExtractUtils.getInt(a + 128, data)));
-        Sort_id.XorValue((ExtractUtils.getInt(a + 132, data)));
-        Icon_id.XorValue((ExtractUtils.getInt(a + 136, data)));
-        Wep_equip.XorValue((ExtractUtils.getInt(a + 140, data)));
-        Mov_equip.XorValue((ExtractUtils.getInt(a + 144, data)));
-        Sp_cost.XorValue((ExtractUtils.getInt(a + 148, data)));
-        Category.XorValue(data[a + 152]);
-        Tome_class.XorValue(data[a + 153]);
-        Exclusive.XorValue(data[a + 154]);
-        Enemy_only.XorValue(data[a + 155]);
-        Range.XorValue(data[a + 156]);
-        Might.XorValue(data[a + 157]);
-        Cooldown_count.XorValue(data[a + 158]);
-        Assist_cd.XorValue(data[a + 159]);
-        Healing.XorValue(data[a + 160]);
-        Skill_range.XorValue(data[a + 161]);
-        Score.XorValue(ExtractUtils.getShort(a + 162, data));
-        Promotion_tier.XorValue(data[a + 164]);
-        Refined.XorValue(data[a + 166]);
-        Refine_sort_id.XorValue(data[a + 167]);
-        Wep_effective.XorValue((ExtractUtils.getInt(a + 168, data)));
-        Mov_effective.XorValue((ExtractUtils.getInt(a + 172, data)));
-        Wep_shield.XorValue((ExtractUtils.getInt(a + 176, data)));
-        Mov_shield.XorValue((ExtractUtils.getInt(a + 180, data)));
-        Wep_weakness.XorValue((ExtractUtils.getInt(a + 184, data)));
-        Mov_weakness.XorValue((ExtractUtils.getInt(a + 188, data)));
-        Wep_got_weakness.XorValue((ExtractUtils.getInt(a + 192, data)));
-        Mov_got_weakness.XorValue((ExtractUtils.getInt(a + 196, data)));
-        a += 8;
-        Wep_adaptive.XorValue((ExtractUtils.getInt(a + 192, data)));
-        Mov_adaptive.XorValue((ExtractUtils.getInt(a + 196, data)));
-        a += 8;
-        Wep_Unknown.XorValue((ExtractUtils.getInt(a + 192, data)));
-        Mov_Unknown.XorValue((ExtractUtils.getInt(a + 196, data)));
-        a += 8;
-        Timing_id.XorValue((ExtractUtils.getInt(a + 200, data)));
-        Ability_id.XorValue((ExtractUtils.getInt(a + 204, data)));
-        Limit1_id.XorValue((ExtractUtils.getInt(a + 208, data)));
-        Limit1_params[0].XorValue((ExtractUtils.getShort(a + 212, data)));
-        Limit1_params[1].XorValue((ExtractUtils.getShort(a + 214, data)));
-        Limit2_id.XorValue((ExtractUtils.getInt(a + 216, data)));
-        Limit2_params[0].XorValue((ExtractUtils.getShort(a + 220, data)));
-        Limit2_params[1].XorValue((ExtractUtils.getShort(a + 222, data)));
-        Target_wep.XorValue((ExtractUtils.getInt(a + 224, data)));
-        Target_mov.XorValue((ExtractUtils.getInt(a + 228, data)));
-        Passive_next = new StringXor(ExtractUtils.getLong(a + 232, data) + offset, data, Common);
+
+        Statistics = new Stats(a + 0x68, data);
+        Class_params = new Stats(a + 0x78, data);
+        Skill_params = new Stats(a + 0x88, data);
+        Skill_params2 = new Stats(a + 0x98, data);
+        new_stat_2 = new Stats(a + 0xA8, data);
+
+        new_stat_1 = new Stats(a + 0xB8, data);
+        Refine_stats = new Stats(a + 0xC8, data);
+
+        Num_id.XorValue((ExtractUtils.getInt(a + 0xD8, data)));
+        Sort_id.XorValue((ExtractUtils.getInt(a + 0xDC, data)));
+        Icon_id.XorValue((ExtractUtils.getInt(a + 0xE0, data)));
+        Wep_equip.XorValue((ExtractUtils.getInt(a + 0xE4, data)));
+        Mov_equip.XorValue((ExtractUtils.getInt(a + 0xE8, data)));
+        Sp_cost.XorValue((ExtractUtils.getInt(a + 0xEC, data)));
+        Category.XorValue(data[a + 0xF0]);
+        Tome_class.XorValue(data[a + 0xF1]);
+        Exclusive.XorValue(data[a + 0xF2]);
+        Enemy_only.XorValue(data[a + 0xF3]);
+        Range.XorValue(data[a + 0xF4]);
+        Might.XorValue(data[a + 0xF5]);
+        Cooldown_count.XorValue(data[a + 0xF6]);
+        Assist_cd.XorValue(data[a + 0xF7]);
+        Healing.XorValue(data[a + 0xF8]);
+        Skill_range.XorValue(data[a + 0xF9]);
+        Score.XorValue(ExtractUtils.getShort(a + 0xFA, data));
+        Promotion_tier.XorValue(data[a + 0xFC]);
+        Refined.XorValue(data[a + 0xFE]);
+        Refine_sort_id.XorValue(data[a + 0xFF]);
+        Wep_effective.XorValue((ExtractUtils.getInt(a + 0x100, data)));
+        Mov_effective.XorValue((ExtractUtils.getInt(a + 0x104, data)));
+        Wep_shield.XorValue((ExtractUtils.getInt(a + 0x108, data)));
+        Mov_shield.XorValue((ExtractUtils.getInt(a + 0x10C, data)));
+        Wep_weakness.XorValue((ExtractUtils.getInt(a + 0x110, data)));
+        Mov_weakness.XorValue((ExtractUtils.getInt(a + 0x114, data)));
+        Wep_got_weakness.XorValue((ExtractUtils.getInt(a + 0x118, data)));
+        Mov_got_weakness.XorValue((ExtractUtils.getInt(a + 0x11C, data)));
+
+        Wep_adaptive.XorValue((ExtractUtils.getInt(a + 0x120, data)));
+        Mov_adaptive.XorValue((ExtractUtils.getInt(a + 0x124, data)));
+
+        Wep_Unknown.XorValue((ExtractUtils.getInt(a + 0x128, data)));
+        Mov_Unknown.XorValue((ExtractUtils.getInt(a + 0x12C, data)));
+
+        Timing_id.XorValue((ExtractUtils.getInt(a + 0x138, data)));
+        Ability_id.XorValue((ExtractUtils.getInt(a + 0x13C, data)));
+        Limit1_id.XorValue((ExtractUtils.getInt(a + 0x140, data)));
+        Limit1_params[0].XorValue((ExtractUtils.getShort(a + 0x144, data)));
+        Limit1_params[1].XorValue((ExtractUtils.getShort(a + 0x146, data)));
+        Limit2_id.XorValue((ExtractUtils.getInt(a + 0x148, data)));
+        Limit2_params[0].XorValue((ExtractUtils.getShort(a + 0x14C, data)));
+        Limit2_params[1].XorValue((ExtractUtils.getShort(a + 0x14E, data)));
+        Target_wep.XorValue((ExtractUtils.getInt(a + 0x150, data)));
+        Target_mov.XorValue((ExtractUtils.getInt(a + 0x154, data)));
+
+        Passive_next = new StringXor(ExtractUtils.getLong(a + 0x158, data) + offset, data, Common);
         if (!Passive_next.Value.Equals(""))
             Archive.Index++;
-        Timestamp.XorValue((ExtractUtils.getLong(a + 240, data)));
-        Random_allowed.XorValue(data[a + 248]);
-        Min_lv.XorValue(data[a + 249]);
-        Max_lv.XorValue(data[a + 250]);
-        Tt_inherit_base.XorValue(data[a + 251]);
-        Random_mode.XorValue(data[a + 252]);
-        Limit3_id.XorValue((ExtractUtils.getInt(a + 256, data)));
-        Limit3_params[0].XorValue((ExtractUtils.getShort(a + 260, data)));
-        Limit3_params[1].XorValue((ExtractUtils.getShort(a + 262, data)));
-        Range_shape.XorValue(data[a + 264]);
-        Target_either.XorValue(data[a + 265]);
-        //Distant_counter.XorValue(data[a + 266]);
-        Canto_range.XorValue(data[a + 266]);
-        Pathfinder_range.XorValue(data[a + 267]);
-        Arcane_weapon.XorValue(data[a + 268]);
-        Unknown_Byte_1.XorValue(data[a + 269]);
-        Seers_snare_avail.XorValue(data[a + 270]);
-        /*        Id_tag2 = new StringXor(ExtractUtils.getLong(a + 256, data) + offset, data, Common);
-                if (!Id_tag2.Value.Equals(""))
-                    Archive.Index++;
-                Next_seal = new StringXor(ExtractUtils.getLong(a + 264, data) + offset, data, Common);
-                if (!Next_seal.Value.Equals(""))
-                    Archive.Index++;
-                Prev_seal = new StringXor(ExtractUtils.getLong(a + 272, data) + offset, data, Common);
-                if (!Prev_seal.Value.Equals(""))
-                    Archive.Index++;
-                Ss_coin.XorValue((ExtractUtils.getShort(a + 280, data)));
-                Ss_badge_type.XorValue((ExtractUtils.getShort(a + 282, data)));
-                Ss_badge.XorValue((ExtractUtils.getShort(a + 284, data)));
-                Ss_great_badge.XorValue((ExtractUtils.getShort(a + 286, data)));
-                */
+
+        Timestamp.XorValue((ExtractUtils.getLong(a + 0x160, data)));
+        Random_allowed.XorValue(data[a + 0x168]);
+        Min_lv.XorValue(data[a + 0x169]);
+        Max_lv.XorValue(data[a + 0x16A]);
+        Tt_inherit_base.XorValue(data[a + 0x16B]);
+        Random_mode.XorValue(data[a + 0x16C]);
+        Limit3_id.XorValue((ExtractUtils.getInt(a + 0x170, data)));
+        Limit3_params[0].XorValue((ExtractUtils.getShort(a + 0x174, data)));
+        Limit3_params[1].XorValue((ExtractUtils.getShort(a + 0x176, data)));
+        Range_shape.XorValue(data[a + 0x178]);
+        Target_either.XorValue(data[a + 0x179]);
+        //Distant_counter.XorValue(data[a + 0x17A]);
+        Canto_range.XorValue(data[a + 0x17A]);
+        Pathfinder_range.XorValue(data[a + 0x17B]);
+        Arcane_weapon.XorValue(data[a + 0x17C]);
+        Unknown_Byte_1.XorValue(data[a + 0x17D]);
+        Seers_snare_avail.XorValue(data[a + 0x17E]);
+
     }
 
     public override string ToString()
@@ -2620,6 +2648,60 @@ public class BaseExtractArchive<T> : ExtractionBase where T : ExtractionBase, ne
         String text = "";
         for (int i = 0; i < NumElem.Value; i++)
             text += Things[i];
+        return text;
+    }
+
+    public override string ToString_json()
+    {
+        String text = "";
+        for (int i = 0; i < NumElem.Value; i++)
+            text += Things[i].ToString_json();
+        return text;
+    }
+
+}
+
+public class BaseExtractArchiveTag<T> : ExtractionBase where T : ExtractionBase, new()
+{
+    private Int64Xor numElem;
+    private T[] things;
+
+    public Int64Xor NumElem { get => numElem; set => numElem = value; }
+    internal T[] Things { get => things; set => things = value; }
+
+    public BaseExtractArchiveTag()
+    {
+        T tmp = new T();
+        Name = tmp.Name;
+        NumElem = new Int64Xor(tmp.ElemXor);
+    }
+    public BaseExtractArchiveTag(long a, byte[] data) : this()
+    {
+        InsertIn(a, data);
+    }
+    public override void InsertIn(long a, byte[] data)
+    {
+        a = Archive.Ptr_list[Archive.Index];
+        NumElem.XorValue(ExtractUtils.getLong(a + 8, data));
+        Archive.Index++;
+        Things = new T[NumElem.Value];
+        a = ExtractUtils.getLong(a, data) + offset;
+        for (int i = 0; i < NumElem.Value; i++)
+        {
+            Things[i] = new T();
+            Things[i].InsertIn(Archive, Archive.Tags[i].Tag_ptr, data);
+        }
+        Archive.Index = Archive.Ptr_list_length;
+    }
+
+    public override string ToString()
+    {
+        String text = "";
+        for (int i = 0; i < NumElem.Value; i++)
+        {
+            text += "TAG : " + Archive.Tags[i].Name + Environment.NewLine;
+            text += Things[i];
+        }
         return text;
     }
 

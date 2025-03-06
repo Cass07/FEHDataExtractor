@@ -42,6 +42,8 @@
             this.ExtractKor = new System.Windows.Forms.Button();
             this.FileListBox = new System.Windows.Forms.ListBox();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.optionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.showProsessLogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -49,7 +51,8 @@
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
-            this.helpToolStripMenuItem});
+            this.helpToolStripMenuItem,
+            this.optionToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(7, 2, 0, 2);
@@ -158,6 +161,21 @@
             this.checkBox1.Text = "Beautify JSON";
             this.checkBox1.UseVisualStyleBackColor = true;
             // 
+            // optionToolStripMenuItem
+            // 
+            this.optionToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.showProsessLogToolStripMenuItem});
+            this.optionToolStripMenuItem.Name = "optionToolStripMenuItem";
+            this.optionToolStripMenuItem.Size = new System.Drawing.Size(56, 20);
+            this.optionToolStripMenuItem.Text = "Option";
+            // 
+            // showProsessLogToolStripMenuItem
+            // 
+            this.showProsessLogToolStripMenuItem.CheckOnClick = true;
+            this.showProsessLogToolStripMenuItem.Name = "showProsessLogToolStripMenuItem";
+            this.showProsessLogToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.showProsessLogToolStripMenuItem.Text = "Show Prosess log";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -197,6 +215,8 @@
         private System.Windows.Forms.Button ExtractKor;
         private System.Windows.Forms.ListBox FileListBox;
         private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.ToolStripMenuItem optionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem showProsessLogToolStripMenuItem;
     }
 }
 

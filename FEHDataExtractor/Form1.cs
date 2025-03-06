@@ -133,96 +133,299 @@ namespace FEHDataExtractor
         {
             if (Path != null && Path != "" && !(comboBox1.SelectedItem == null || comboBox1.SelectedItem.ToString().Equals("")))
             {
-                ExtractionBase tmp = null;
+                string selectedExtractorName = comboBox1.SelectedItem.ToString();
+                ExtractionBase originalTmp = null;
+
                 for (int i = 0; i < A.Length; i++)
-                    if (comboBox1.SelectedItem.ToString().Equals(A[i].Name))
-                        tmp = A[i];
-                foreach (String directory in Pathes)
+                    if (selectedExtractorName.Equals(A[i].Name))
+                        originalTmp = A[i];
+
+                if (originalTmp == null)
                 {
-                    List<String> directoryList = new List<String>();
-                    if (Directory.Exists(directory))
+                    MessageBox.Show("Invalid extraction type selected.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // 로그 표시 설정 확인
+                bool showLog = showProsessLogToolStripMenuItem.Checked;
+
+                // 로그 폼 객체
+                LogForm logForm = null;
+
+                // 로그 표시 설정이 켜져 있을 경우에만 로그 폼 생성 및 표시
+                if (showLog)
+                {
+                    logForm = new LogForm();
+                    logForm.Show();
+                    logForm.AddLog("Starting JSON processing...");
+                }
+
+                // 모든 파일 리스트 수집
+                List<string> allFilesToProcess = new List<string>();
+
+                foreach (String path in Pathes)
+                {
+                    if (Directory.Exists(path))
                     {
-                        //선택된 file 디렉토리가 폴더임, 1depth만 지원
-                        foreach (string p in (new DirectoryInfo(directory)).GetFiles().Select(f => f.FullName))
+                        // 폴더인 경우 재귀적으로 모든 .lz 파일 검색
+                        try
                         {
-                            //lz 확장자만 선택
-                            string ext = System.IO.Path.GetExtension(p).ToLower();
-                            
-                            if (ext.Equals(".lz"))
+                            // 재귀 검색 함수 호출
+                            FindFilesRecursively(path, allFilesToProcess, "*.lz");
+
+                            if (showLog)
                             {
-                                directoryList.Add(p);
+                                logForm.AddLog($"Searched directory: {path}");
                             }
                         }
-                    } else
-                    {
-                        directoryList.Add(directory);
+                        catch (Exception ex)
+                        {
+                            if (showLog)
+                            {
+                                logForm.AddLog($"Error searching directory {path}: {ex.Message}", ex);
+                            }
+                        }
                     }
-                    foreach (String file in directoryList)
+                    else if (File.Exists(path))
                     {
-                        string ext = System.IO.Path.GetExtension(file).ToLower();
-                        byte[] data = Decompression.Open(file);
-                        String output = "";
-
-
-                        if (data != null && tmp != null && !(tmp.Name.Equals("") || tmp.Name.Equals("Decompress")))
-                        {
-                            HSDARC a = new HSDARC(0, data);
-                            while (a.Ptr_list_length - a.NegateIndex > a.Index)
-                            {
-                                if (!tmp.Name.Equals("Messages"))
-                                {
-                                    tmp.InsertIn(a, 0, data);
-                                }
-                                else
-                                {
-                                    tmp.InsertIn(a, offset, data);
-                                }
-                                if (checkBox1.Checked && tmp is Messages)
-                                {
-                                    output = ((Messages)tmp).ToJsonBeautfy();
-                                } else
-                                {
-                                    output += tmp.ToString_json();
-                                }
-                            }
-                        }
-                        if(!(tmp is Messages))
-                        {
-                            output = "[" + output.Substring(0, output.Length - 1) + "]";
-                        }
-
-
-                        if (checkBox1.Checked && !(tmp is Messages))
-                        {
-                            output = JValue.Parse(output).ToString(Newtonsoft.Json.Formatting.Indented);
-                        }
-
-                        String PathManip = file.Remove(file.Length - 3, 3);
+                        // 파일인 경우 직접 추가
+                        string ext = System.IO.Path.GetExtension(path).ToLower();
                         if (ext.Equals(".lz"))
-                            PathManip = file.Remove(file.Length - 6, 6);
-                        PathManip += tmp.Name.Equals("Decompress") ? "bin" : "json";
-                        if (file.Equals(PathManip))
-                            PathManip += tmp.Name.Equals("Decompress") ? ".bin" : ".json";
-                        if (tmp.Name.Equals("Decompress") && data != null)
-                            File.WriteAllBytes(PathManip, data);
-                        else if (tmp.Name.Equals("Messages") && data != null)
-                            File.WriteAllBytes(PathManip, Encoding.UTF8.GetBytes(output));
-                        else
-                            File.WriteAllText(PathManip, output);
+                        {
+                            allFilesToProcess.Add(path);
+                        }
                     }
                 }
-                MessageBox.Show(Pathes.Length > 1 ? "JSON Files processed!" : "JSON File processed!", "Success");
+
+                // 로그 표시 설정이 켜져 있을 경우에만 로그 추가
+                if (showLog)
+                {
+                    logForm.AddLog($"Found {allFilesToProcess.Count} files to process");
+                }
+
+                // 뷰티파이 설정 저장
+                bool beautify = checkBox1.Checked;
+
+                // 완료된 파일 카운터
+                int completedFiles = 0;
+                int errorFiles = 0;
+                object lockObj = new object();
+
+                // 팩토리가 초기화되었는지 확인
+                if (!ExtractionBaseFactory.IsInitialized)
+                {
+                    ExtractionBaseFactory.Initialize(A);
+
+                    // 로그 표시 설정이 켜져 있을 경우에만 로그 추가
+                    if (showLog)
+                    {
+                        logForm.AddLog("Factory initialized with available extractors");
+                    }
+                }
+
+                // 멀티스레드 처리 시작
+                Task.Run(() =>
+                {
+                    // 처리할 파일 수에 따라 적절한 스레드 수 결정 (최대 환경 프로세서 수)
+                    int threadCount = Math.Min(Environment.ProcessorCount, allFilesToProcess.Count);
+                    threadCount = Math.Max(1, threadCount); // 최소한 1개 스레드 보장
+
+                    // 로그 표시 설정이 켜져 있을 경우에만 로그 추가
+                    if (showLog)
+                    {
+                        logForm.AddLog($"Starting processing with {threadCount} threads");
+                    }
+
+                    // 병렬 처리 수행
+                    Parallel.ForEach(allFilesToProcess, new ParallelOptions { MaxDegreeOfParallelism = threadCount }, file =>
+                    {
+                        try
+                        {
+                            // 팩토리를 사용하여 각 작업마다 새 인스턴스 생성
+                            ExtractionBase threadLocalTmp = ExtractionBaseFactory.Create(selectedExtractorName);
+
+                            if (threadLocalTmp == null)
+                            {
+                                // 로그 표시 설정이 켜져 있을 경우에만 로그 추가
+                                if (showLog)
+                                {
+                                    logForm.AddLog($"Error: Failed to create extractor for {selectedExtractorName}",
+                                        new Exception("Factory failed to create extractor instance"));
+                                }
+                                lock (lockObj) { errorFiles++; }
+                                return;
+                            }
+
+                            string ext = System.IO.Path.GetExtension(file).ToLower();
+                            byte[] data = null;
+
+                            try
+                            {
+                                data = Decompression.Open(file);
+                            }
+                            catch (Exception ex)
+                            {
+                                // 로그 표시 설정이 켜져 있을 경우에만 로그 추가
+                                if (showLog)
+                                {
+                                    logForm.AddLog($"Error decompressing {file}: {ex.Message}", ex);
+                                }
+                                lock (lockObj) { errorFiles++; }
+                                return;
+                            }
+
+                            String output = "";
+
+                            if (data != null && threadLocalTmp != null && !(threadLocalTmp.Name.Equals("") || threadLocalTmp.Name.Equals("Decompress")))
+                            {
+                                try
+                                {
+                                    HSDARC a = new HSDARC(0, data);
+                                    while (a.Ptr_list_length - a.NegateIndex > a.Index)
+                                    {
+                                        if (!threadLocalTmp.Name.Equals("Messages"))
+                                        {
+                                            threadLocalTmp.InsertIn(a, 0, data);
+                                        }
+                                        else
+                                        {
+                                            threadLocalTmp.InsertIn(a, offset, data);
+                                        }
+
+                                        if (beautify && threadLocalTmp is Messages)
+                                        {
+                                            output = ((Messages)threadLocalTmp).ToJsonBeautfy();
+                                        }
+                                        else
+                                        {
+                                            output += threadLocalTmp.ToString_json();
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    // 로그 표시 설정이 켜져 있을 경우에만 로그 추가
+                                    if (showLog)
+                                    {
+                                        logForm.AddLog($"Error processing {file}: {ex.Message}", ex);
+                                    }
+                                    lock (lockObj) { errorFiles++; }
+                                    return;
+                                }
+                            }
+
+                            try
+                            {
+                                if (!(threadLocalTmp is Messages) && !string.IsNullOrEmpty(output))
+                                {
+                                    output = "[" + output.Substring(0, output.Length - 1) + "]";
+                                }
+
+                                if (beautify && !(threadLocalTmp is Messages) && !string.IsNullOrEmpty(output))
+                                {
+                                    output = JValue.Parse(output).ToString(Newtonsoft.Json.Formatting.Indented);
+                                }
+
+                                String PathManip = file.Remove(file.Length - 3, 3);
+                                if (ext.Equals(".lz"))
+                                    PathManip = file.Remove(file.Length - 6, 6);
+                                PathManip += threadLocalTmp.Name.Equals("Decompress") ? "bin" : "json";
+                                if (file.Equals(PathManip))
+                                    PathManip += threadLocalTmp.Name.Equals("Decompress") ? ".bin" : ".json";
+
+                                if (threadLocalTmp.Name.Equals("Decompress") && data != null)
+                                    File.WriteAllBytes(PathManip, data);
+                                else if (threadLocalTmp.Name.Equals("Messages") && data != null)
+                                    File.WriteAllBytes(PathManip, Encoding.UTF8.GetBytes(output));
+                                else if (!string.IsNullOrEmpty(output))
+                                    File.WriteAllText(PathManip, output);
+                                else
+                                    throw new Exception("No output generated");
+                            }
+                            catch (Exception ex)
+                            {
+                                // 로그 표시 설정이 켜져 있을 경우에만 로그 추가
+                                if (showLog)
+                                {
+                                    logForm.AddLog($"Error writing output for {file}: {ex.Message}", ex);
+                                }
+                                lock (lockObj) { errorFiles++; }
+                                return;
+                            }
+
+                            // 로그 업데이트 - 로그 표시 설정이 켜져 있을 경우에만
+                            if (showLog)
+                            {
+                                string fileName = System.IO.Path.GetFileName(file);
+                                logForm.AddLog($"Processed: {fileName}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // 로그 표시 설정이 켜져 있을 경우에만 로그 추가
+                            if (showLog)
+                            {
+                                logForm.AddLog($"Unexpected error processing {file}: {ex.Message}", ex);
+                            }
+                            lock (lockObj) { errorFiles++; }
+                        }
+                    });
+
+                    // 모든 파일 처리 완료
+                    this.Invoke(new Action(() =>
+                    {
+                        completedFiles = allFilesToProcess.Count - errorFiles;
+                        // 로그 표시 설정이 켜져 있을 경우에만 로그 추가
+                        if (showLog)
+                        {
+                            logForm.AddLog($"All files processed. Success: {completedFiles}, Errors: {errorFiles}");
+                        }
+
+                        if (errorFiles > 0)
+                            MessageBox.Show($"처리 완료. 성공: {completedFiles}, 오류: {errorFiles}", "처리 완료",
+                                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        else
+                            MessageBox.Show(Pathes.Length > 1 ? "JSON Files processed!" : "JSON File processed!", "Success");
+                    }));
+                });
             }
         }
 
-
-        private void messagesJpnToolStripMenuItem_Click(object sender, EventArgs e)
+        /// <summary>
+        /// 지정된 폴더와 모든 하위 폴더에서 .lz 파일을 재귀적으로 검색합니다.
+        /// </summary>
+        /// <param name="folderPath">검색할 폴더 경로</param>
+        /// <param name="fileList">발견된 파일이 추가될 리스트</param>
+        private void FindFilesRecursively(string folderPath, List<string> fileList, String extension)
         {
-            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+            try
             {
-                MessagePath = folderBrowserDialog1.SelectedPath;
-                LoadMessages.openFolderJp(MessagePath);
-                MessageBox.Show("Loaded JP messages!", "Success");
+                // 현재 폴더의 모든 .lz 파일 검색
+                foreach (string file in Directory.GetFiles(folderPath, extension))
+                {
+                    fileList.Add(file);
+                }
+
+                // 모든 하위 폴더에 대해 재귀 호출
+                foreach (string subDir in Directory.GetDirectories(folderPath))
+                {
+                    FindFilesRecursively(subDir, fileList, extension);
+                }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                // 접근 권한이 없는 폴더는 스킵
+                System.Diagnostics.Debug.WriteLine($"Access denied to {folderPath}: {ex.Message}");
+            }
+            catch (PathTooLongException ex)
+            {
+                // 경로가 너무 긴 경우 스킵
+                System.Diagnostics.Debug.WriteLine($"Path too long in {folderPath}: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                // 기타 예외 처리
+                System.Diagnostics.Debug.WriteLine($"Error searching {folderPath}: {ex.Message}");
             }
         }
 
