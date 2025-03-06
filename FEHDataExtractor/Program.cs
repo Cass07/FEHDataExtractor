@@ -18,20 +18,33 @@ namespace FEHDataExtractor
             initializeWeapons();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1(new GCWorld(), new BaseExtractArchive<SinglePerson>(),
-                new BaseExtractArchive<SingleEnemy>(), new GenericText("", CommonRelated.Common),
-                new BaseExtractArchive<SingleSkill>(), new BaseExtractArchive<Quest_group>(),
-                new Decompress(), new BaseExtractArchive<TempestTrial>(),
-                new Messages(), new WeaponClasses(),
-                new BaseExtractArchiveDirect<Forging_Bonds>(),
-                new BaseExtractArchiveInteger<SingleSubscription>(),
-                new BaseExtractArchive<SingleArenaPerson>(),
-                new BaseExtractArchive<SingleCaptainSkill>(),
-                new BaseExtractArchive<SingleSkillAccessory>(),
-                new BaseExtractArchive<SingleWeaponRefine>(),
-                new BaseExtractArchive<StageEvent>()
 
-                ));
+            // ExtractionBase 인스턴스 생성
+            ExtractionBase[] extractors = new ExtractionBase[] {
+                    new GCWorld(),
+                    new BaseExtractArchive<SinglePerson>(),
+                    new BaseExtractArchive<SingleEnemy>(),
+                    new GenericText("", CommonRelated.Common),
+                    new BaseExtractArchive<SingleSkill>(),
+                    new BaseExtractArchive<Quest_group>(),
+                    new Decompress(),
+                    new BaseExtractArchive<TempestTrial>(),
+                    new Messages(),
+                    new WeaponClasses(),
+                    new BaseExtractArchiveDirect<Forging_Bonds>(),
+                    new BaseExtractArchiveInteger<SingleSubscription>(),
+                    new BaseExtractArchive<SingleArenaPerson>(),
+                    new BaseExtractArchive<SingleCaptainSkill>(),
+                    new BaseExtractArchive<SingleSkillAccessory>(),
+                    new BaseExtractArchive<SingleWeaponRefine>(),
+                    new BaseExtractArchive<StageEvent>()
+                };
+
+            // 생성한 인스턴스를 베이스로 팩토리 초기화
+            ExtractionBaseFactory.Initialize(extractors);
+
+            // 폼 실행
+            Application.Run(new Form1(extractors));
         }
 
         public static void initializeWeapons()
